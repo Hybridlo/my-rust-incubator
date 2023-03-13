@@ -1,0 +1,66 @@
+Step 0: Become familiar with Rust basics
+========================================
+
+__Estimated time__: 3 days
+
+Read through [Rust Book], [Rust FAQ], and become familiar with basic [Rust] concepts, syntax, memory model, type and module systems.
+
+Polish your familiarity by completing [Rust By Example].
+
+Read through [Cargo Book] and become familiar with [Cargo] and its workspaces.
+
+After completing these steps, you should be able to answer (and understand why) the following questions:
+- What memory model [Rust] has? Is it single-threaded or multiple-threaded? Is it synchronous or asynchronous?
+- What runtime [Rust] has? Does it use a GC (garbage collector)?
+- What statically typing means? What is a benefit of using it?
+- What are generics and parametric polymorphism? Which problems do they solve?
+- What are traits? How are they used? How do they compare to interfaces? What are an auto trait and a blanket impl? What is a marker trait?
+- What are static and dynamic dispatches? Which should I use, and when?
+- What is a crate and what is a module in Rust? How do they differ? How are the used?
+- What are move semantics? What are borrowing rules? What is the benefit of using them?
+- What is immutability? What is the benefit of using it?
+- What is cloning? What is copying? How do they compare?
+- What is RAII? How is it implemented in [Rust]? What is the benefit of using it?
+- What is an iterator? What is a collection? How do they differ? How are they used?
+- What are macros? Which problems do they solve? What is the difference between declarative and procedural macro?
+- How code is tested in [Rust]? Where should you put tests and why?
+- Why [Rust] has `&str` and `String` types? How do they differ? When should you use them?
+- What are lifetimes? Which problems do they solve? Which benefits do they give?
+- Is [Rust] OOP language? Is it possible to use SOLID/GRASP? Does it have an inheritance?
+
+After you're done notify your lead in an appropriate PR (pull request), and he will exam what you have learned.
+
+_Additional_ articles, which may help to understand the above topic better:
+- [Chris Morgan: Rust ownership, the hard way][1]
+- [Ludwig Stecher: Rusts Module System Explained][2]
+- [Tristan Hume: Models of Generics and Metaprogramming: Go, Rust, Swift, D and More][3]
+- [Jeff Anderson: Generics Demystified Part 1][4]
+- [Jeff Anderson: Generics Demystified Part 2][5]
+- [Brandon Smith: Three Kinds of Polymorphism in Rust][6]
+- [Jeremy Steward: C++ & Rust: Generics and Specialization][7]
+- [cooscoos: &stress about &Strings][8]
+- [Jimmy Hartzell: RAII: Compile-Time Memory Management in C++ and Rust][9]
+- [Georgios Antonopoulos: Rust vs Common C++ Bugs][10]
+- [Yurii Shymon: True Observer Pattern with Unsubscribe mechanism using Rust][11]
+
+
+
+
+[Cargo]: https://github.com/rust-lang/cargo
+[Cargo Book]: https://doc.rust-lang.org/cargo
+[Rust]: https://www.rust-lang.org
+[Rust Book]: https://doc.rust-lang.org/book
+[Rust By Example]: https://doc.rust-lang.org/rust-by-example
+[Rust FAQ]: https://prev.rust-lang.org/faq.html
+
+[1]: https://chrismorgan.info/blog/rust-ownership-the-hard-way
+[2]: https://aloso.github.io/2021/03/28/module-system.html
+[3]: https://thume.ca/2019/07/14/a-tour-of-metaprogramming-models-for-generics
+[4]: https://web.archive.org/web/20220525213911/http://jeffa.io/rust_guide_generics_demystified_part_1
+[5]: https://web.archive.org/web/20220328114028/https://jeffa.io/rust_guide_generics_demystified_part_2
+[6]: https://www.brandons.me/blog/polymorphism-in-rust
+[7]: https://www.tangramvision.com/blog/c-rust-generics-and-specialization#substitution-ordering--failures
+[8]: https://cooscoos.github.io/blog/stress-about-strings
+[9]: https://www.thecodedmessage.com/posts/raii
+[10]: https://geo-ant.github.io/blog/2022/common-cpp-errors-vs-rust
+[11]: https://ybnesm.github.io/blah/articles/true-observer-pattern-rust
