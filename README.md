@@ -63,7 +63,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [ ] [1.1. Default values, cloning and copying][Step 1.1] (1 day)
     - [ ] [1.2. Boxing and pinning][Step 1.2] (1 day)
     - [ ] [1.3. Shared ownership and interior mutability][Step 1.3] (1 day)
-    - [ ] [1.4. Clone-on-write][Step 1.4] (1 day)
+    - [x] [1.4. Clone-on-write][Step 1.4] (1 day)
     - [ ] [1.5. Conversions, casting and dereferencing][Step 1.5] (1 day)
     - [ ] [1.6. Static and dynamic dispatch][Step 1.6] (1 day)
     - [ ] [1.7. `Sized` and `?Sized` types][Step 1.7] (1 day)
