@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, marker::PhantomData};
 
 trait Storage<K, V> {
     fn set(&mut self, key: K, val: V);
@@ -13,35 +13,72 @@ struct User {
     activated: bool,
 }
 
-struct UserRepositoryStatic {}
+trait UserRepository<K, V> {
+    fn set(&mut self, key: K, val: V);
+    fn get(&self, key: &K) -> Option<&V>;
+    fn remove(&mut self, key: &K) -> Option<V>;
+}
 
-impl UserRepositoryStatic {
-    pub fn set<K, V>(storage: &mut impl Storage<K, V>, key: K, val: V) {
-        storage.set(key, val);
-    }
+struct UserRepositoryStatic<T, K, V>
+where
+    T: Storage<K, V>,
+{
+    storage: T,
+    _storage_key: PhantomData<K>,
+    _storage_val: PhantomData<V>,
+}
 
-    pub fn get<'a, K, V>(storage: &'a impl Storage<K, V>, key: &K) -> Option<&'a V> {
-        storage.get(key)
-    }
-
-    pub fn remove<K, V>(storage: &mut impl Storage<K, V>, key: &K) -> Option<V> {
-        storage.remove(key)
+impl<T, K, V> UserRepositoryStatic<T, K, V>
+where
+    T: Storage<K, V>,
+{
+    pub fn new(storage: T) -> Self {
+        Self {
+            storage,
+            _storage_key: PhantomData,
+            _storage_val: PhantomData,
+        }
     }
 }
 
-struct UserRepositoryDynamic {}
-
-impl UserRepositoryDynamic {
-    pub fn set<K, V>(storage: &mut dyn Storage<K, V>, key: K, val: V) {
-        storage.set(key, val);
+impl<T, K, V> UserRepository<K, V> for UserRepositoryStatic<T, K, V>
+where
+    T: Storage<K, V>,
+{
+    fn set(&mut self, key: K, val: V) {
+        self.storage.set(key, val);
     }
 
-    pub fn get<'a, K, V>(storage: &'a dyn Storage<K, V>, key: &K) -> Option<&'a V> {
-        storage.get(key)
+    fn get(&self, key: &K) -> Option<&V> {
+        self.storage.get(key)
     }
 
-    pub fn remove<K, V>(storage: &mut dyn Storage<K, V>, key: &K) -> Option<V> {
-        storage.remove(key)
+    fn remove(&mut self, key: &K) -> Option<V> {
+        self.storage.remove(key)
+    }
+}
+
+struct UserRepositoryDynamic<K, V> {
+    storage: Box<dyn Storage<K, V>>,
+}
+
+impl<K, V> UserRepositoryDynamic<K, V> {
+    pub fn new(storage: Box<dyn Storage<K, V>>) -> Self {
+        Self { storage }
+    }
+}
+
+impl<K, V> UserRepository<K, V> for UserRepositoryDynamic<K, V> {
+    fn set(&mut self, key: K, val: V) {
+        self.storage.set(key, val);
+    }
+
+    fn get(&self, key: &K) -> Option<&V> {
+        self.storage.get(key)
+    }
+
+    fn remove(&mut self, key: &K) -> Option<V> {
+        self.storage.remove(key)
     }
 }
 
@@ -101,11 +138,10 @@ impl Default for SomeStorage {
 fn check_static() {
     println!("\n\nStart static check\n");
 
-    let mut storage = SomeStorage::default();
-    println!("{storage:#?}");
+    let mut repository = UserRepositoryStatic::new(SomeStorage::default());
+    println!("{:#?}", repository.storage);
 
-    UserRepositoryStatic::set(
-        &mut storage,
+    repository.set(
         "user4".to_string(),
         User {
             id: 4,
@@ -113,22 +149,20 @@ fn check_static() {
             activated: false,
         },
     );
-    println!("{storage:#?}");
+    println!("{:#?}", repository.storage);
 
-    let item = UserRepositoryStatic::get(&storage, &"user3".to_string());
+    let item = repository.get(&"user3".to_string());
     println!("{item:?}");
-    UserRepositoryStatic::remove(&mut storage, &"user2".to_string());
-    println!("{storage:#?}");
+    repository.remove(&"user2".to_string());
+    println!("{:#?}", repository.storage);
 }
 
 fn check_dynamic() {
     println!("\n\nStart dynamic check\n");
 
-    let mut storage = SomeStorage::default();
-    println!("{storage:#?}");
+    let mut repository = UserRepositoryDynamic::new(Box::new(SomeStorage::default()));
 
-    UserRepositoryDynamic::set(
-        &mut storage,
+    repository.set(
         "user4".to_string(),
         User {
             id: 4,
@@ -136,12 +170,10 @@ fn check_dynamic() {
             activated: false,
         },
     );
-    println!("{storage:#?}");
 
-    let item = UserRepositoryDynamic::get(&storage, &"user3".to_string());
+    let item = repository.get(&"user3".to_string());
     println!("{item:?}");
-    UserRepositoryDynamic::remove(&mut storage, &"user2".to_string());
-    println!("{storage:#?}");
+    repository.remove(&"user2".to_string());
 }
 
 fn main() {
