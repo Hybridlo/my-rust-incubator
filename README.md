@@ -67,7 +67,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [ ] [1.5. Conversions, casting and dereferencing][Step 1.5] (1 day)
     - [ ] [1.6. Static and dynamic dispatch][Step 1.6] (1 day)
     - [ ] [1.7. `Sized` and `?Sized` types][Step 1.7] (1 day)
-    - [ ] [1.8. Thread safety][Step 1.8] (1 day)
+    - [x] [1.8. Thread safety][Step 1.8] (1 day)
     - [ ] [1.9. Phantom types][Step 1.9] (1 day)
 - [ ] [2. Idioms][Step 2] (2 days)
     - [ ] [2.1. Rich types ensure correctness][Step 2.1] (1 day)
