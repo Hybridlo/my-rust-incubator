@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap, marker::PhantomData};
+use std::{borrow::Cow, cell::RefCell, collections::HashMap, marker::PhantomData};
 
 trait Storage<K, V> {
     fn set(&mut self, key: K, val: V);
@@ -13,72 +13,135 @@ struct User {
     activated: bool,
 }
 
-trait UserRepository<K, V> {
-    fn set(&mut self, key: K, val: V);
-    fn get(&self, key: &K) -> Option<&V>;
-    fn remove(&mut self, key: &K) -> Option<V>;
+struct RepositoryUserNotFound;
+
+trait UserRepository<K> {
+    fn set(&self, key: K, val: User);
+    fn get(&self, key: &K) -> Option<User>;
+    // getting a user that doesn't exist just returns None,
+    // but removing/updating a user that doesn't exist is an error
+    fn remove(&self, key: &K) -> Result<(), RepositoryUserNotFound>;
+    fn update(&self, key: K, val: &User) -> Result<(), RepositoryUserNotFound>;
 }
 
-struct UserRepositoryStatic<T, K, V>
+struct UserRepositoryStatic<T, K>
 where
-    T: Storage<K, V>,
+    T: Storage<K, User>,
 {
-    storage: T,
+    storage: RefCell<T>,
     _storage_key: PhantomData<K>,
-    _storage_val: PhantomData<V>,
 }
 
-impl<T, K, V> UserRepositoryStatic<T, K, V>
+impl<T, K> UserRepositoryStatic<T, K>
 where
-    T: Storage<K, V>,
+    T: Storage<K, User>,
 {
     pub fn new(storage: T) -> Self {
         Self {
-            storage,
+            storage: RefCell::new(storage),
             _storage_key: PhantomData,
-            _storage_val: PhantomData,
         }
     }
 }
 
-impl<T, K, V> UserRepository<K, V> for UserRepositoryStatic<T, K, V>
+impl<T, K> UserRepository<K> for UserRepositoryStatic<T, K>
 where
-    T: Storage<K, V>,
+    T: Storage<K, User>,
 {
-    fn set(&mut self, key: K, val: V) {
-        self.storage.set(key, val);
+    fn set(&self, key: K, val: User) {
+        let mut storage = self.storage.borrow_mut();
+        storage.set(key, val);
     }
 
-    fn get(&self, key: &K) -> Option<&V> {
-        self.storage.get(key)
+    fn get(&self, key: &K) -> Option<User> {
+        let storage = self.storage.borrow();
+        let user_raw = storage.get(key)?;
+        // maybe it comes in raw binary, or json
+
+        Some(User {
+            id: user_raw.id,
+            email: user_raw.email.clone(),
+            activated: user_raw.activated,
+        })
     }
 
-    fn remove(&mut self, key: &K) -> Option<V> {
-        self.storage.remove(key)
+    fn remove(&self, key: &K) -> Result<(), RepositoryUserNotFound> {
+        let mut storage = self.storage.borrow_mut();
+        storage.remove(key).ok_or(RepositoryUserNotFound)?;
+
+        Ok(())
+    }
+
+    fn update(&self, key: K, val: &User) -> Result<(), RepositoryUserNotFound> {
+        let mut storage = self.storage.borrow_mut();
+        // check user exists
+        storage.get(&key).ok_or(RepositoryUserNotFound)?;
+
+        // turn back into raw
+        let user_raw = User {
+            id: val.id,
+            email: val.email.clone(),
+            activated: val.activated,
+        };
+
+        storage.set(key, user_raw);
+
+        Ok(())
     }
 }
 
-struct UserRepositoryDynamic<K, V> {
-    storage: Box<dyn Storage<K, V>>,
+struct UserRepositoryDynamic<K> {
+    storage: RefCell<Box<dyn Storage<K, User>>>,
 }
 
-impl<K, V> UserRepositoryDynamic<K, V> {
-    pub fn new(storage: Box<dyn Storage<K, V>>) -> Self {
-        Self { storage }
+impl<K> UserRepositoryDynamic<K> {
+    pub fn new(storage: Box<dyn Storage<K, User>>) -> Self {
+        Self {
+            storage: RefCell::new(storage),
+        }
     }
 }
 
-impl<K, V> UserRepository<K, V> for UserRepositoryDynamic<K, V> {
-    fn set(&mut self, key: K, val: V) {
-        self.storage.set(key, val);
+impl<K> UserRepository<K> for UserRepositoryDynamic<K> {
+    fn set(&self, key: K, val: User) {
+        let mut storage = self.storage.borrow_mut();
+        storage.set(key, val);
     }
 
-    fn get(&self, key: &K) -> Option<&V> {
-        self.storage.get(key)
+    fn get(&self, key: &K) -> Option<User> {
+        let storage = self.storage.borrow();
+        let user_raw = storage.get(key)?;
+        // maybe it comes in raw binary, or json
+
+        Some(User {
+            id: user_raw.id,
+            email: user_raw.email.clone(),
+            activated: user_raw.activated,
+        })
     }
 
-    fn remove(&mut self, key: &K) -> Option<V> {
-        self.storage.remove(key)
+    fn remove(&self, key: &K) -> Result<(), RepositoryUserNotFound> {
+        let mut storage = self.storage.borrow_mut();
+        storage.remove(key).ok_or(RepositoryUserNotFound)?;
+
+        Ok(())
+    }
+
+    fn update(&self, key: K, val: &User) -> Result<(), RepositoryUserNotFound> {
+        let mut storage = self.storage.borrow_mut();
+        // check user exists
+        storage.get(&key).ok_or(RepositoryUserNotFound)?;
+
+        // turn back into raw
+        let user_raw = User {
+            id: val.id,
+            email: val.email.clone(),
+            activated: val.activated,
+        };
+
+        storage.set(key, user_raw);
+
+        Ok(())
     }
 }
 
@@ -138,7 +201,7 @@ impl Default for SomeStorage {
 fn check_static() {
     println!("\n\nStart static check\n");
 
-    let mut repository = UserRepositoryStatic::new(SomeStorage::default());
+    let repository = UserRepositoryStatic::new(SomeStorage::default());
     println!("{:#?}", repository.storage);
 
     repository.set(
@@ -153,14 +216,49 @@ fn check_static() {
 
     let item = repository.get(&"user3".to_string());
     println!("{item:?}");
-    repository.remove(&"user2".to_string());
+    println!(
+        "remove success: {}",
+        repository.remove(&"user2".to_string()).is_ok()
+    );
     println!("{:#?}", repository.storage);
+    println!(
+        "remove fail: {}",
+        repository.remove(&"user5".to_string()).is_err()
+    );
+
+    println!(
+        "update success: {}",
+        repository
+            .update(
+                "user4".to_string(),
+                &User {
+                    id: 6,
+                    email: "email2@example.com".into(),
+                    activated: false
+                }
+            )
+            .is_ok()
+    );
+    println!("{:#?}", repository.storage);
+    println!(
+        "update fail: {}",
+        repository
+            .update(
+                "user5".to_string(),
+                &User {
+                    id: 6,
+                    email: "email2@example.com".into(),
+                    activated: false
+                }
+            )
+            .is_err()
+    );
 }
 
 fn check_dynamic() {
     println!("\n\nStart dynamic check\n");
 
-    let mut repository = UserRepositoryDynamic::new(Box::new(SomeStorage::default()));
+    let repository = UserRepositoryDynamic::new(Box::new(SomeStorage::default()));
 
     repository.set(
         "user4".to_string(),
@@ -173,7 +271,28 @@ fn check_dynamic() {
 
     let item = repository.get(&"user3".to_string());
     println!("{item:?}");
-    repository.remove(&"user2".to_string());
+    assert!(repository.remove(&"user2".to_string()).is_ok());
+    assert!(repository.remove(&"user5".to_string()).is_err());
+    assert!(repository
+        .update(
+            "user4".to_string(),
+            &User {
+                id: 6,
+                email: "email2@example.com".into(),
+                activated: false
+            }
+        )
+        .is_ok());
+    assert!(repository
+        .update(
+            "user5".to_string(),
+            &User {
+                id: 6,
+                email: "email2@example.com".into(),
+                activated: false
+            }
+        )
+        .is_err());
 }
 
 fn main() {
