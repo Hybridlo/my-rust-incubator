@@ -1,26 +1,29 @@
-use std::{thread, rc::Rc};
+use std::{sync::Mutex, thread};
 
 mod thread_structs;
 
-use thread_structs::{SyncAndSend, NotSyncNorSend, OnlySend, OnlySync};
+use thread_structs::{NotSyncNorSend, OnlySend, OnlySync, SyncAndSend};
 
 fn main() {
-    let only_sync = OnlySync::new(1);
+    let mutex = Mutex::new(1);
 
-    // we can borrow OnlySync immutably, since it's Sync
-    thread::scope(|s| {
-        s.spawn(|| {
-            println!("{}", only_sync.get_value());
+    if let Ok(mutex_guard) = mutex.lock() {
+        let only_sync = OnlySync { value: mutex_guard };
+
+        // we can borrow OnlySync immutably, since it's Sync
+        thread::scope(|s| {
+            s.spawn(|| {
+                println!("{}", *only_sync.value);
+            });
         });
-    });
 
-    // OnlySync can't be sent to another thread since it's not Send (compile time error)
-    /* thread::scope(|s| {
-        s.spawn(move || {
-            only_sync.change_value(2);
-        });
-    }); */
-
+        // OnlySync can't be sent to another thread since it's not Send (compile time error)
+        /* thread::scope(|s| {
+            s.spawn(move || {
+                *only_sync.value = 2;
+            });
+        }); */
+    }
 
     let only_send = OnlySend::default();
 
@@ -38,7 +41,6 @@ fn main() {
         });
     });
 
-
     let mut sync_and_send = SyncAndSend::default();
 
     // we can borrow SyncAndSend
@@ -54,7 +56,6 @@ fn main() {
             sync_and_send.value = 2;
         });
     });
-
 
     let mut not_sync_nor_send = NotSyncNorSend::default();
 
