@@ -3,12 +3,60 @@ use std::{
     num::NonZeroU64,
 };
 
+// let's try to use it all
+struct AggregateVec<T> {
+    items: Vec<T>,
+}
+
+impl<T> Aggregate for AggregateVec<T> {
+    fn aggregate_type() -> &'static str {
+        "Vector of any type"
+    }
+}
+
+struct AggregateVecId(String);
+impl<T> AggregateId<AggregateVec<T>> for AggregateVecId {
+    fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+struct AddVecDefaultItemEvent;
+
+impl Event for AddVecDefaultItemEvent {
+    fn event_type(&self) -> &'static str {
+        "Add a default item to vec"
+    }
+}
+
+impl<T: Default> AggregateEvent<AggregateVec<T>> for AddVecDefaultItemEvent {
+    fn apply_to(self, aggregate: &mut AggregateVec<T>) {
+        aggregate.items.push(Default::default())
+    }
+}
+
 fn main() {
-    println!("Refactor me!");
+    let hydrated = HydratedAggregate {
+        version: Version::new(5),
+        snapshot_version: Some(Version::new(2)),
+        state: AggregateVec {
+            items: vec![1, 2, 3, 4],
+        },
+    };
+
+    let mut entity = Entity::new(AggregateVecId(1.to_string()), hydrated);
+
+    let event = AddVecDefaultItemEvent;
+
+    entity.aggregate_mut().apply(event);
+
+    assert_eq!(entity.aggregate().version(), Version::new(6));
+    assert_eq!(entity.aggregate().state().items, vec![1, 2, 3, 4, 0]);
 }
 
 /// A projected state built from a series of events.
-pub trait Aggregate: Default {
+pub trait Aggregate/* : Default */ /* do we really need to constrain this? users of trait can add "+ Default" if they need to */
+{
     /// A static string representing the type of the aggregate.
     ///
     /// Note: This should effectively be a constant value, and should never change.
@@ -39,7 +87,7 @@ pub trait Event {
 }
 
 /// An event that can be applied to an aggregate.
-pub trait AggregateEvent<A: Aggregate>: Event {
+pub trait AggregateEvent<A: Aggregate + ?Sized /* we're passing the aggregate behind a reference, so it can be unsized */>: Event {
     /// Consumes the event, applying its effects to the aggregate.
     fn apply_to(self, aggregate: &mut A);
 }
@@ -52,13 +100,15 @@ impl EventNumber {
     /// The minimum [EventNumber].
     #[allow(unsafe_code)]
     pub const MIN_VALUE: EventNumber =
-    // One is absolutely non-zero, and this is required for this to be usable in a `const` context.
+        // One is absolutely non-zero, and this is required for this to be usable in a `const` context.
         EventNumber(unsafe { NonZeroU64::new_unchecked(1) });
 
     /// Increments the event number to the next value.
     #[inline]
     pub fn incr(&mut self) {
-        self.0 = NonZeroU64::new(self.0.get() + 1).unwrap();
+        // not part of the task, but just looks nicer
+        self.0 = self.0.checked_add(1).unwrap();
+        // self.0 = NonZeroU64::new(self.0.get() + 1).unwrap();
     }
 }
 
@@ -103,10 +153,7 @@ impl Version {
 
 /// An aggregate that has been loaded from a source, which keeps track of the version of its last snapshot and the current version of the aggregate.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq)]
-pub struct HydratedAggregate<A>
-where
-    A: Aggregate,
-{
+pub struct HydratedAggregate<A> {
     version: Version,
     snapshot_version: Option<Version>,
     state: A,
@@ -150,19 +197,13 @@ where
     }
 }
 
-impl<A> AsRef<A> for HydratedAggregate<A>
-where
-    A: Aggregate,
-{
+impl<A> AsRef<A> for HydratedAggregate<A> {
     fn as_ref(&self) -> &A {
         &self.state
     }
 }
 
-impl<A> Borrow<A> for HydratedAggregate<A>
-where
-    A: Aggregate,
-{
+impl<A> Borrow<A> for HydratedAggregate<A> {
     fn borrow(&self) -> &A {
         &self.state
     }
@@ -170,11 +211,7 @@ where
 
 /// An identified, specific instance of a hydrated aggregate.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq)]
-pub struct Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+pub struct Entity<I, A> {
     id: I,
     aggregate: HydratedAggregate<A>,
 }
@@ -205,61 +242,37 @@ where
     }
 }
 
-impl<I, A> From<Entity<I, A>> for HydratedAggregate<A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> From<Entity<I, A>> for HydratedAggregate<A> {
     fn from(entity: Entity<I, A>) -> Self {
         entity.aggregate
     }
 }
 
-impl<I, A> AsRef<HydratedAggregate<A>> for Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> AsRef<HydratedAggregate<A>> for Entity<I, A> {
     fn as_ref(&self) -> &HydratedAggregate<A> {
         &self.aggregate
     }
 }
 
-impl<I, A> AsMut<HydratedAggregate<A>> for Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> AsMut<HydratedAggregate<A>> for Entity<I, A> {
     fn as_mut(&mut self) -> &mut HydratedAggregate<A> {
         &mut self.aggregate
     }
 }
 
-impl<I, A> Borrow<HydratedAggregate<A>> for Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> Borrow<HydratedAggregate<A>> for Entity<I, A> {
     fn borrow(&self) -> &HydratedAggregate<A> {
         &self.aggregate
     }
 }
 
-impl<I, A> Borrow<A> for Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> Borrow<A> for Entity<I, A> {
     fn borrow(&self) -> &A {
         self.aggregate.borrow()
     }
 }
 
-impl<I, A> BorrowMut<HydratedAggregate<A>> for Entity<I, A>
-where
-    A: Aggregate,
-    I: AggregateId<A>,
-{
+impl<I, A> BorrowMut<HydratedAggregate<A>> for Entity<I, A> {
     fn borrow_mut(&mut self) -> &mut HydratedAggregate<A> {
         &mut self.aggregate
     }
