@@ -46,7 +46,7 @@ mod tests {
                 });
             });
 
-            assert!(ddl.is_empty());
+            assert!(ddl.is_empty(), "ddl len is {}", ddl.len());
         }
     }
 
