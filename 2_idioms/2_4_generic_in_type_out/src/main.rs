@@ -3,8 +3,8 @@ use std::net::{IpAddr, SocketAddr};
 fn main() {
     println!("Refactor me!");
 
-    let mut err = Error::new("NO_USER".to_string());
-    err.status(404).message("User not found".to_string());
+    let mut err = Error::new("NO_USER");
+    err.status(404).message("User not found");
 }
 
 #[derive(Debug)]
@@ -26,9 +26,9 @@ impl Default for Error {
 }
 
 impl Error {
-    pub fn new(code: String) -> Self {
+    pub fn new<S: AsRef<str>>(code: S) -> Self {
         let mut err = Self::default();
-        err.code = code;
+        err.code = code.as_ref().to_string();
         err
     }
 
@@ -37,8 +37,8 @@ impl Error {
         self
     }
 
-    pub fn message(&mut self, m: String) -> &mut Self {
-        self.message = m;
+    pub fn message<S: AsRef<str>>(&mut self, m: S) -> &mut Self {
+        self.message = m.as_ref().to_string();
         self
     }
 }
@@ -47,8 +47,12 @@ impl Error {
 pub struct Server(Option<SocketAddr>);
 
 impl Server {
-    pub fn bind(&mut self, ip: IpAddr, port: u16) {
-        self.0 = Some(SocketAddr::new(ip, port))
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn bind<S: Into<IpAddr>>(&mut self, ip: S, port: u16) {
+        self.0 = Some(SocketAddr::new(ip.into(), port))
     }
 }
 
@@ -57,18 +61,17 @@ mod server_spec {
     use super::*;
 
     mod bind {
-        use std::net::Ipv4Addr;
-
         use super::*;
 
         #[test]
         fn sets_provided_address_to_server() {
-            let mut server = Server::default();
+            let mut server = Server::new();
 
-            server.bind(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080);
+            server.bind([127, 0, 0, 1], 8080);
             assert_eq!(format!("{}", server.0.unwrap()), "127.0.0.1:8080");
 
-            server.bind("::1".parse().unwrap(), 9911);
+            let ipv6: IpAddr = "::1".parse().unwrap();
+            server.bind(ipv6, 9911);
             assert_eq!(format!("{}", server.0.unwrap()), "[::1]:9911");
         }
     }
