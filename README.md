@@ -71,7 +71,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [x] [1.9. Phantom types][Step 1.9] (1 day)
 - [ ] [2. Idioms][Step 2] (2 days)
     - [x] [2.1. Rich types ensure correctness][Step 2.1] (1 day)
-    - [ ] [2.2. Swapping values with `mem::replace`][Step 2.2] (1 day)
+    - [x] [2.2. Swapping values with `mem::replace`][Step 2.2] (1 day)
     - [ ] [2.3. Bound behavior, not data][Step 2.3] (1 day)
     - [ ] [2.4. Abstract type in, concrete type out][Step 2.4] (1 day)
 - [ ] [3. Ecosystem][Step 3] (5 days)
