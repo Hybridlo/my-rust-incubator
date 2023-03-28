@@ -77,7 +77,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
 - [ ] [3. Ecosystem][Step 3] (5 days)
     - [x] [3.1. Testing and mocking][Step 3.1] (1 day)
     - [x] [3.2. Declarative and procedural macros][Step 3.2] (1 day)
-    - [ ] [3.3. Date and time][Step 3.3] (1 day)
+    - [x] [3.3. Date and time][Step 3.3] (1 day)
     - [ ] [3.4. Regular expressions and custom parsers][Step 3.4] (1 day)
     - [ ] [3.5. Collections and iterators][Step 3.5] (1 day)
     - [ ] [3.6. Serialization and deserialization][Step 3.6] (1 day)
