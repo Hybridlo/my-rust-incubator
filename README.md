@@ -75,7 +75,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [x] [2.3. Bound behavior, not data][Step 2.3] (1 day)
     - [x] [2.4. Abstract type in, concrete type out][Step 2.4] (1 day)
 - [ ] [3. Ecosystem][Step 3] (5 days)
-    - [ ] [3.1. Testing and mocking][Step 3.1] (1 day)
+    - [x] [3.1. Testing and mocking][Step 3.1] (1 day)
     - [ ] [3.2. Declarative and procedural macros][Step 3.2] (1 day)
     - [ ] [3.3. Date and time][Step 3.3] (1 day)
     - [ ] [3.4. Regular expressions and custom parsers][Step 3.4] (1 day)
