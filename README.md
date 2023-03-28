@@ -69,7 +69,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [x] [1.7. `Sized` and `?Sized` types][Step 1.7] (1 day)
     - [x] [1.8. Thread safety][Step 1.8] (1 day)
     - [x] [1.9. Phantom types][Step 1.9] (1 day)
-- [ ] [2. Idioms][Step 2] (2 days)
+- [x] [2. Idioms][Step 2] (2 days)
     - [x] [2.1. Rich types ensure correctness][Step 2.1] (1 day)
     - [x] [2.2. Swapping values with `mem::replace`][Step 2.2] (1 day)
     - [x] [2.3. Bound behavior, not data][Step 2.3] (1 day)
