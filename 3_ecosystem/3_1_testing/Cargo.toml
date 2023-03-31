@@ -3,3 +3,7 @@ name = "step_3_1"
 version = "0.1.0"
 edition = "2021"
 publish = false
+
+[dev-dependencies]
+assert_cmd = "2.0.10"
+predicates = "3.0.2"
