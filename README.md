@@ -80,7 +80,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [x] [3.3. Date and time][Step 3.3] (1 day)
     - [x] [3.4. Regular expressions and custom parsers][Step 3.4] (1 day)
     - [x] [3.5. Collections and iterators][Step 3.5] (1 day)
-    - [ ] [3.6. Serialization and deserialization][Step 3.6] (1 day)
+    - [x] [3.6. Serialization and deserialization][Step 3.6] (1 day)
     - [x] [3.7. Randomness and cryptography][Step 3.7] (1 day)
     - [ ] [3.8. Logging and tracing][Step 3.8] (1 day)
     - [ ] [3.9. Command-line arguments, environment variables and configs][Step 3.9] (1 day)
