@@ -3,3 +3,12 @@ name = "step_3_9"
 version = "0.1.0"
 edition = "2021"
 publish = false
+
+[dependencies]
+clap = { version = "4.2.1", features=["derive"] }
+config = "0.13.3"
+url = { version = "2.3.1", features=["serde"] }
+humantime-serde = "1.1.1"
+serde = "1.0.159"
+serde_json = "1.0.95"
+envy = "0.4.2"
