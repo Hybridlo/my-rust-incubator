@@ -85,7 +85,7 @@ Do not hesitate to ask your lead with questions, however you won't receive a con
     - [ ] [3.8. Logging and tracing][Step 3.8] (1 day)
     - [ ] [3.9. Command-line arguments, environment variables and configs][Step 3.9] (1 day)
     - [ ] [3.10. Multithreading and parallelism][Step 3.10] (1 day)
-    - [ ] [3.11. Async I/O, futures and actors][Step 3.11] (2 days)
+    - [x] [3.11. Async I/O, futures and actors][Step 3.11] (2 days)
     - [ ] [3.12. Web frameworks, databases, connection pools and ORMs][Step 3.12] (1 day)
 
 
