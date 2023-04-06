@@ -43,21 +43,19 @@ fn main() {
     // create the path if it doesn't exist
     std::fs::create_dir_all(OUTPUT_FOLDER).expect("To be able to create output folder");
 
-    let threads = links
-    // len is a usize (nonnegative), divided by amount of PC threads (positive) so the result is still nonnegative
-        .chunks((links.len() as f64 / args.max_threads as f64).ceil() as usize)
-        .map(|links_chunk| {
-            let links_chunk = links_chunk.to_vec();
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(args.max_threads)
+        .enable_all()
+        .build().expect("to create a Tokio Runtime");
 
-            thread::spawn(move || {
-                let runtime = tokio::runtime::Runtime::new().expect("Successful runtime creation");
-    
-                runtime.block_on(download_files(&links_chunk));
-            })
-        })
-        .collect::<Vec<_>>();
-
-    for thread in threads {
-        thread.join().expect("Threads to end successfully");
-    }
+    runtime.block_on(async move {
+        futures::future::join_all(
+            links
+                .chunks((links.len() as f64 / args.max_threads as f64).ceil() as usize)
+                .map(|links_chunk| {
+                    download_files(links_chunk)
+                })
+                .collect::<Vec<_>>()
+        ).await;
+    });
 }
