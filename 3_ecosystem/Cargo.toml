@@ -3,3 +3,20 @@ name = "step_3"
 version = "0.1.0"
 edition = "2021"
 publish = false
+
+[dependencies]
+actix-web = "4.3.1"
+async-graphql = "5.0.7"
+async-graphql-actix-web = "5.0.7"
+async-trait = "0.1.68"
+dotenvy = "0.15.7"
+hmac = "0.12.1"
+jwt = "0.16.0"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+rust-argon2 = "1.0.0"
+serde = { version = "1.0.159", features = ["derive"] }
+serde_json = "1.0.95"
+sha2 = "0.10.6"
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "sqlite" ] }
+time = { version = "0.3.20", features = ["serde-well-known"] }
